@@ -10,21 +10,69 @@
 
       //put your Post model class here
 
+      var setTemplate = function(id){
+        return _.template($('#' + id).html());
+      };
+
 
       //put your postView class here
 
 
-      var firstPost = new Post("This is a blog post.  This message should be displayed on my blog.");
-      var secondPost = new Post("Hi!  I'm back, this should be below the first one.  Did both posts render correctly?");
-      var firstPostView = new PostView({model: firstPost});
-      var secondPostView = new PostView({model: secondPost});
+      $(function(){
 
-      $('body').append([
-        firstPostView.render(),
-        secondPostView.render()
-      ]);
+        window.Post = Backbone.Model.extend({
+          initialize: function(message){
+            this.set('message', message);
+          },
 
+          validate: function(attrs){
+            if( !attrs.message ){
+              return "need a valid message.";
+            }
+          }
+        }); 
+
+        var PostView = Backbone.View.extend({
+
+
+          template: setTemplate('viewTemplate'),
+
+          initialize: function(){
+            this.model.on('change:message', this.render, this);
+          },
+
+          events: {
+            'click .edit': 'editPost'
+          },
+
+          editPost: function(){
+            this.model.set('message', prompt("Enter a new message", this.model.get('message')), {validate: true});
+          },
+
+          render: function(){
+            this.$el.html(this.template(this.model.toJSON()));
+            return this;
+          }
+        });
+
+
+        var firstPost = new Post("This is a blog post.  This message should be displayed on my blog.");
+        var secondPost = new Post("Hi!  I'm back, this should be below the first one.  Did both posts render correctly?");
+        var firstPostView = new PostView({model: firstPost});
+        var secondPostView = new PostView({model: secondPost});
+
+        $('body').append([
+          firstPostView.render().el,
+          secondPostView.render().el
+        ]);
+      });
 
   	</script>
+
+    <script id="viewTemplate" type="text/template">
+      <span class="message"><%= message %></span>
+      <button class="edit">Edit</button>
+    </script>
+
   </body>
 </html>
